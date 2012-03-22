@@ -108,8 +108,10 @@ static void writexml(const char *name)
 
 void fillrect(int x, int y, int w, int h, int val)
 {
-	while (h--) 
+	while (h--) {
 		memset(img[y] + x*2, val, w*2);
+		y++;
+	}
 }
 
 static int sock;
@@ -151,7 +153,6 @@ int udprecv(int fd, char *buf, int len)
 	return recvfrom(fd, buf, len, 0, (struct sockaddr *)&sa, (socklen_t *)&salen);
 }
 
-
 void algo_init()
 {
 	printf("algo_init\n");
@@ -165,14 +166,18 @@ void algo_fini()
 	close(sock);
 }
 
-void algo_proc(void *_img)
+int algo_proc(void *_img)
 {
 	img = (typeof(img))_img;
+	process();
 	if (selected(sock)) {
 		char buf[128];
 		udprecv(sock, buf, sizeof(buf));
-		readxml("/incoming.xml");
+		if (*buf == 'q') 
+			return 1;
+		if (*buf == 'x')
+			readxml("/incoming.xml");
 	}
-	process();
+	return 0;
 }
 

@@ -1,6 +1,7 @@
 #include <algo.h>
 
 static char mode;
+static char acting;
 static xmlTextReaderPtr reader;
 static xmlTextWriterPtr writer;
 
@@ -11,7 +12,7 @@ static xmlTextWriterPtr writer;
 #define nodeis(s) !strcmp(nodename(), s)
 #define nodeattr(s) (char *)xmlTextReaderGetAttribute(reader, (xmlChar *)s)
 #define attris(s, v) (nodeattr(s) && !strcmp(nodeattr(s), v))
-#define getattr(s, ...) sscanf(nodeattr(s), __VA_ARGS__)
+#define getattr(s, ...) (nodeattr(s) && sscanf(nodeattr(s), __VA_ARGS__))
 
 void decl_radio(const char *name, int *sel, ...)
 {
@@ -46,8 +47,8 @@ void decl_btn(const char *name, void (*cb)(const char *))
 		attr("name", "%s", name);
 		endnode();
 	}
-	if (mode == 'r' && nodeis("button") && 
-			attris("name", name) && attris("pushed", ""))
+	if (mode == 'r' && acting && 
+			nodeis("button") && attris("name", name))
 		cb(name);
 }
 
@@ -61,8 +62,14 @@ void decl_var_int(const char *name, int *p, int min, int max)
 		attr("val", "%d", *p);
 		endnode();
 	}
-	if (mode == 'r' && nodeis("int") && attris("name", name))
-		getattr("val", "%d", p);
+	if (mode == 'r' && 
+			nodeis("int") && attris("name", name)) 
+	{
+		int v;
+		if (getattr("val", "%d", &v) && 
+				v >= min && v <= max)
+		 *p = v;	
+	}
 }
 
 void decl_var_float(const char *name, float *p, float min, float max)
@@ -75,8 +82,14 @@ void decl_var_float(const char *name, float *p, float min, float max)
 		attr("val", "%f", *p);
 		endnode();
 	}
-	if (mode == 'r' && nodeis("float") && attris("name", name))
-		getattr("val", "%f", p);
+	if (mode == 'r' && 
+			nodeis("float") && attris("name", name)) 
+	{
+		float v;
+		if (getattr("val", "%f", &v) && 
+				v >= min && v <= max) 
+			*p = v;
+	}
 }
 
 static void all_decl()
@@ -86,7 +99,7 @@ static void all_decl()
 
 static void readxml(const char *name)
 {
-	mode = 'r';
+	mode = 'r'; 
 	reader = xmlReaderForFile(name, NULL, 0);
 	xmlTextReaderRead(reader); // skip root
 	while (xmlTextReaderRead(reader) == 1) {
@@ -157,7 +170,7 @@ void algo_init()
 {
 	printf("algo_init\n");
 	sock = udpsock(1653);
-//	writexml("/default.xml");
+	writexml("./default.xml");
 	init();
 }
 
@@ -175,8 +188,16 @@ int algo_proc(void *_img)
 		udprecv(sock, buf, sizeof(buf));
 		if (*buf == 'q') 
 			return 1;
-		if (*buf == 'x')
-			readxml("/incoming.xml");
+		if (*buf == 'a') {
+			acting = 1;
+			readxml("./act.xml");
+			acting = 0;
+		}
+		if (*buf == 's') 
+			writexml("./config.xml");
+		if (*buf == 'l')
+			readxml("./config.xml");
+		writexml("./cur.xml");
 	}
 	return 0;
 }

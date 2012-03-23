@@ -132,7 +132,6 @@ static int sock;
 int selected(int fd)
 {
 	fd_set fs;
-	int r;
 	struct timeval tv = {};
 	FD_ZERO(&fs);
 	FD_SET(fd, &fs);
@@ -197,6 +196,8 @@ int algo_proc(void *_img)
 			writexml("./config.xml");
 		if (*buf == 'l')
 			readxml("./config.xml");
+		if (*buf == 'r') 
+			readxml("./default.xml");
 		writexml("./cur.xml");
 	}
 	return 0;

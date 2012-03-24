@@ -158,17 +158,23 @@ void udpsend(char *ip, int port, char *buf, int len)
 	sendto(sock, buf, len, 0, (struct sockaddr *)&si, sizeof(si));
 }
 
+static struct sockaddr_in clisa;
+
+void udpreply(char *buf, int len)
+{
+	sendto(sock, buf, len, 0, (struct sockaddr *)&clisa, sizeof(clisa));
+}
+
 int udprecv(int fd, char *buf, int len)
 {
-	struct sockaddr_in sa;
 	int salen;
-	return recvfrom(fd, buf, len, 0, (struct sockaddr *)&sa, (socklen_t *)&salen);
+	return recvfrom(fd, buf, len, 0, (struct sockaddr *)&clisa, (socklen_t *)&salen);
 }
 
 void algo_init()
 {
 	printf("algo_init\n");
-	sock = udpsock(1653);
+	sock = udpsock(atoi(getenv("BINDPORT")));
 	writexml("./default.xml");
 	init();
 }
@@ -185,6 +191,7 @@ int algo_proc(void *_img)
 	if (selected(sock)) {
 		char buf[128];
 		udprecv(sock, buf, sizeof(buf));
+		printf("got %c\n", *buf);
 		if (*buf == 'q') 
 			return 1;
 		if (*buf == 'a') {

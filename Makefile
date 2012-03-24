@@ -1,16 +1,20 @@
 
 plat ?= a8
 libs += libxml-2.0
-objs += algo.o teacher.o
+teacher_objs += algo.o teacher.o
+udp2ser_objs += algo.o udp2ser.o
 
 include ${parentsdir}/top.mk
 
-all: capfilter.so
+all: teacher.so udp2ser
 
 %.o: algo.h
 
-capfilter.so: ${objs}
-	${CC} -shared -o $@ ${objs} ${LDFLAGS} 
+udp2ser: ${udp2ser_objs}
+	${CC} -o $@ ${udp2ser_objs} ${LDFLAGS}
+
+teacher.so: ${teacher_objs}
+	${CC} -shared -o $@ ${teacher_objs} ${LDFLAGS} 
 
 clean:
 	rm -rf *.o *.so 

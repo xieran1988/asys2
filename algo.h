@@ -45,3 +45,13 @@ void init();
 void decl();
 void process();
 
+int selected(int fd);
+int udpsock(int port);
+void udpsend(char *ip, int port, char *buf, int len);
+void udpreply(char *buf, int len);
+int udprecv(int fd, char *buf, int len);
+
+void algo_init();
+void algo_fini();
+int algo_proc(void *_img);
+

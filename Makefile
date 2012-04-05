@@ -3,6 +3,7 @@ plat ?= a8
 libs += libxml-2.0
 teacher_objs += algo.o teacher.o
 udp2ser_objs += algo.o udp2ser.o
+release_files += teacher.so udp2ser
 
 include ${parentsdir}/top.mk
 
